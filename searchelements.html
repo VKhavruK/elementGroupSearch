@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>SearchGroupElement</title>
+	<style>
+		span {
+			display: inline-block;
+			font-family: monospace;
+			font-size: 24px;
+			padding: 0 10px;
+		}
+		.bg {
+			background-color: #aaa;
+		}
+		.selected {
+			box-shadow: inset 0 0 0px 2px red; 
+		}
+	</style>
+</head>
+<body>
+	<script>
+		var field = [
+			['♠', '♠', '♠', '♡', '♢', '♠', '♠'],
+			['♠', '♢', '♣', '♡', '♢', '♢', '♠'],
+			['♢', '♠', '♡', '♡', '♡', '♣', '♠'],
+			['♡', '♡', '♡', '♡', '♡', '♡', '♡'],
+			['♠', '♣', '♡', '♡', '♡', '♣', '♠'],
+			['♢', '♢', '♣', '♡', '♠', '♣', '♡'],
+			['♠', '♠', '♠', '♡', '♠', '♡', '♠']
+		];
+
+		var x = 3;
+		var y = 3;
+
+		var res = (new Finder(field, y, x)).getGroup();
+		drawResult(field, y, x, res);
+		
+
+		function Finder(field, y, x) {
+			this.field = field;
+			this.queue = [[y, x]];
+			this.neededType = this.field[y][x];
+			this.checkedPosition = [];
+			this.fieldWidth = this.field[0].length;
+			this.fieldHeight = this.field.length;
+
+
+			this.getGroup = function () {
+
+				var result = [];
+
+				for(var i in this.field) {
+					this.checkedPosition.push([]);
+					for(var j in field[i]) {
+						this.checkedPosition[i].push(false);
+					}
+				}
+
+				while(this.queue.length != 0) {
+					var elem = this.queue.shift();
+					var positionY = elem[0];
+					var positionX = elem[1];
+
+					// перевіряємо чи цей елемент перевірений
+					if(!this.checkedPosition[positionY][positionX]) {
+						result.push(elem);
+						this.checkedPosition[positionY][positionX] = true; 
+
+						// перевірка типу елементів сусідніх позицій і додавання координат в чергу
+						if(positionX - 1 >= 0) {
+							this.addToQueue(positionY, positionX - 1);
+						}
+						if(positionX + 1 < this.fieldWidth) {
+							this.addToQueue(positionY, positionX + 1);
+						}
+						if(positionY - 1 >= 0) {
+							this.addToQueue(positionY - 1, positionX);
+						}
+						if(positionY + 1 < this.fieldHeight) {
+							this.addToQueue(positionY + 1, positionX);
+						}
+						
+					}
+				}
+
+				return result;
+			}
+
+			this.addToQueue = function (y, x) {
+				if(this.field[y][x] === this.neededType && !this.checkedPosition[y][x]) {
+					this.queue.push([y, x]);
+				}
+			}
+		};
+
+		function drawResult(field, y, x, res) {
+			for(var i in field) {
+				var row = document.createElement("div");
+				row.className = 'row' + i; 
+				document.body.append(row);
+				for(var j in field[i]) {
+					row.innerHTML += "<span class='col"+ j +"'>"+ field[i][j] + "</span>";
+				}
+			}
+
+			for(var i in res) {
+				var str = '.row' + res[i][0] + ' .col'+ res[i][1];
+				var elem = document.querySelector(str);
+				elem.className += " bg"; 
+				if(res[i][0] == y && res[i][1] == x) {
+					elem.className += ' selected';
+				}
+			}
+		}
+
+	</script>
+
+</body>
+</html>
